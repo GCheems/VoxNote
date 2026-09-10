@@ -1,0 +1,14 @@
+.env
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.uv-cache/
+.uv-python/
+.venv/
+venv/
+data/
+model-cache/
+hf-cache/
+torch-cache/
+model-cache-huggingface/
+.DS_Store

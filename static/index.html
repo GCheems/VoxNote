@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>VoxNote · 本地会议整理</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">LOCAL MEETING WORKSPACE</p>
+          <h1>VoxNote <span>会议录音整理</span></h1>
+        </div>
+        <div class="privacy-pill"><span class="dot"></span>文件默认只保存在本机</div>
+      </header>
+
+      <section class="hero grid-card">
+        <div>
+          <p class="eyebrow">01 / IMPORT</p>
+          <h2>把一场会议，整理成可以行动的记录。</h2>
+          <p class="muted">拖入 aac、mp3、m4a、wav 或 mp4。VoxNote 会在本机完成中文转写、说话人分段，并准备好 Markdown、TXT、JSON、SRT 导出。</p>
+        </div>
+        <div class="model-note">
+          <span class="label">默认模型链</span>
+          <strong>Paraformer-zh</strong>
+          <span>FSMN-VAD · CT-Punc · CAM++</span>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <div class="left-column">
+          <div id="dropzone" class="dropzone" tabindex="0">
+            <input id="fileInput" type="file" accept=".aac,.mp3,.m4a,.wav,.mp4,audio/*,video/mp4" hidden />
+            <div class="drop-icon">↥</div>
+            <h3>拖拽音频到这里</h3>
+            <p class="muted">或点击选择文件 · 单文件 · 支持最长时长取决于本机资源</p>
+            <button id="chooseButton" class="button secondary" type="button">选择文件</button>
+          </div>
+
+          <div id="fileCard" class="file-card hidden">
+            <div class="file-symbol">♫</div>
+            <div class="file-meta">
+              <strong id="fileName">—</strong>
+              <span id="fileSize">—</span>
+            </div>
+            <button id="clearButton" class="icon-button" type="button" aria-label="移除文件">×</button>
+          </div>
+
+          <div class="action-row">
+            <button id="startButton" class="button primary" type="button" disabled>开始本地转写</button>
+            <span id="statusText" class="status-text">等待导入文件</span>
+          </div>
+
+          <div id="progressPanel" class="progress-panel hidden">
+            <div class="progress-head"><span id="progressLabel">准备中</span><strong id="progressValue">0%</strong></div>
+            <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+            <p id="progressHint" class="muted">首次使用 FunASR 可能需要下载模型，请保持页面打开。</p>
+          </div>
+
+          <div class="transcript-card">
+            <div class="section-heading"><div><p class="eyebrow">02 / TRANSCRIPT</p><h2>带时间戳的逐句记录</h2></div><span id="segmentCount" class="count-badge">0 句</span></div>
+            <div id="transcriptEmpty" class="empty-state">完成转写后，逐句内容会出现在这里。</div>
+            <div id="transcriptList" class="transcript-list"></div>
+          </div>
+        </div>
+
+        <aside class="right-column">
+          <div class="side-card">
+            <p class="eyebrow">03 / EXPORT</p>
+            <h2>带走你的记录</h2>
+            <p class="muted">转写完成后下载任意格式，原始音频与结果仍留在项目文件夹。</p>
+            <div id="exportButtons" class="export-grid disabled">
+              <button data-format="md" class="export-button" disabled><span>.md</span><small>会议纪要草稿</small></button>
+              <button data-format="txt" class="export-button" disabled><span>.txt</span><small>纯文本记录</small></button>
+              <button data-format="json" class="export-button" disabled><span>.json</span><small>结构化数据</small></button>
+              <button data-format="srt" class="export-button" disabled><span>.srt</span><small>字幕时间轴</small></button>
+            </div>
+          </div>
+
+          <div class="side-card summary-card">
+            <p class="eyebrow">04 / SUMMARY</p>
+            <h2>生成会议纪要</h2>
+            <p class="muted">使用 DeepSeek 或任意 OpenAI 兼容 API。API Key 只随本次请求发送，不写入本地。</p>
+            <label>API Base URL<input id="baseUrl" type="url" placeholder="https://api.deepseek.com" /></label>
+            <label>模型<input id="model" type="text" placeholder="deepseek-chat" /></label>
+            <label>API Key<input id="apiKey" type="password" placeholder="sk-..." autocomplete="off" /></label>
+            <label>额外要求（可选）<textarea id="extraInstruction" rows="3" placeholder="例如：重点列出产品决策和负责人"></textarea></label>
+            <button id="summaryButton" class="button primary full" type="button" disabled>生成 Markdown 纪要</button>
+            <a id="summaryLink" class="summary-link hidden" target="_blank" rel="noreferrer">打开已生成的会议纪要 →</a>
+          </div>
+
+          <div id="errorBox" class="error-box hidden"></div>
+        </aside>
+      </section>
+    </main>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

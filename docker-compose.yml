@@ -1,0 +1,23 @@
+services:
+  voxnote:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # .env is also used by the native Windows launcher. Override its
+      # Windows paths inside the Linux container with container paths.
+      VOXNOTE_DATA_DIR: /app/data
+      MODELSCOPE_CACHE: /app/model-cache
+      HF_HOME: /app/hf-cache
+      HUGGINGFACE_HUB_CACHE: /app/hf-cache/hub
+      TORCH_HOME: /app/torch-cache
+      # Use DOCKER_FUNASR_DEVICE=cuda:0 only with an NVIDIA-enabled image/runtime.
+      FUNASR_DEVICE: ${DOCKER_FUNASR_DEVICE:-cpu}
+    volumes:
+      - ./data:/app/data
+      # FunASR/ModelScope 模型缓存持久化，避免容器重建后重复下载
+      - ./model-cache:/app/model-cache
+      - ./hf-cache:/app/hf-cache
+      - ./torch-cache:/app/torch-cache
