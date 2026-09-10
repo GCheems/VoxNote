@@ -50,8 +50,12 @@ function clearFile() {
 function resetTranscript() {
   state.transcriptReady = false;
   $("transcriptList").innerHTML = "";
+  $("transcriptList").classList.remove("timestamps-visible");
   $("transcriptEmpty").classList.remove("hidden");
   $("segmentCount").textContent = "0 句";
+  $("toggleTimestamps").disabled = true;
+  $("toggleTimestamps").textContent = "显示时间戳";
+  $("toggleTimestamps").setAttribute("aria-pressed", "false");
   $("summaryButton").disabled = true;
   $("summaryLink").classList.add("hidden");
   document.querySelectorAll(".export-button").forEach((button) => { button.disabled = true; });
@@ -72,17 +76,39 @@ function renderProgress(job) {
 
 function renderTranscript(transcript) {
   const list = $("transcriptList");
-  list.innerHTML = transcript.segments.map((segment) => `
+  list.innerHTML = transcript.segments.map((segment, index) => `
     <article class="transcript-item">
-      <div class="transcript-time"><strong>${escapeHtml(segment.speaker)}</strong>${escapeHtml(segment.start || formatTimestamp(segment.start_ms))}<br />↓ ${escapeHtml(segment.end || formatTimestamp(segment.end_ms))}</div>
+      <div class="transcript-speaker">
+        <span class="speaker-avatar">${escapeHtml(speakerMark(segment.speaker))}</span>
+        <div class="transcript-speaker-info">
+          <strong>${escapeHtml(segment.speaker)}</strong>
+          <span class="speaker-turn">第 ${index + 1} 句</span>
+          <span class="transcript-time">${escapeHtml(segment.start || formatTimestamp(segment.start_ms))}<br />↓ ${escapeHtml(segment.end || formatTimestamp(segment.end_ms))}</span>
+        </div>
+      </div>
       <p class="transcript-text">${escapeHtml(segment.text)}</p>
     </article>
   `).join("");
   $("transcriptEmpty").classList.toggle("hidden", transcript.segments.length > 0);
-  $("segmentCount").textContent = `${transcript.segments.length} 句`;
+  $("segmentCount").textContent = transcript.segments.length + " 句";
+  $("toggleTimestamps").disabled = transcript.segments.length === 0;
   state.transcriptReady = true;
   $("summaryButton").disabled = false;
   document.querySelectorAll(".export-button").forEach((button) => { button.disabled = false; });
+}
+
+function speakerMark(speaker) {
+  const value = String(speaker || "Speaker").trim();
+  const number = value.match(/^speaker\s*(\d+)$/i);
+  if (number) return "S" + number[1];
+  return Array.from(value.replace(/\s+/g, "")).slice(0, 2).join("") || "说话";
+}
+
+function toggleTimestamps() {
+  const list = $("transcriptList");
+  const visible = list.classList.toggle("timestamps-visible");
+  $("toggleTimestamps").textContent = visible ? "隐藏时间戳" : "显示时间戳";
+  $("toggleTimestamps").setAttribute("aria-pressed", String(visible));
 }
 
 function escapeHtml(value) {
@@ -207,6 +233,7 @@ $("fileInput").addEventListener("change", (event) => { if (event.target.files[0]
 $("clearButton").addEventListener("click", clearFile);
 $("startButton").addEventListener("click", uploadAndStart);
 $("summaryButton").addEventListener("click", generateSummary);
+$("toggleTimestamps").addEventListener("click", toggleTimestamps);
 document.querySelectorAll(".export-button").forEach((button) => {
   button.addEventListener("click", () => {
     if (state.jobId) window.location.href = `/api/jobs/${state.jobId}/export/${button.dataset.format}`;

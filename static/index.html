@@ -60,7 +60,17 @@
           </div>
 
           <div class="transcript-card">
-            <div class="section-heading"><div><p class="eyebrow">02 / TRANSCRIPT</p><h2>带时间戳的逐句记录</h2></div><span id="segmentCount" class="count-badge">0 句</span></div>
+            <div class="section-heading transcript-heading">
+              <div>
+                <p class="eyebrow">02 / TRANSCRIPT</p>
+                <h2>可读版会议记录</h2>
+                <p class="section-hint">按说话人展示，时间戳默认收起</p>
+              </div>
+              <div class="transcript-actions">
+                <button id="toggleTimestamps" class="timestamp-toggle" type="button" disabled aria-pressed="false">显示时间戳</button>
+                <span id="segmentCount" class="count-badge">0 句</span>
+              </div>
+            </div>
             <div id="transcriptEmpty" class="empty-state">完成转写后，逐句内容会出现在这里。</div>
             <div id="transcriptList" class="transcript-list"></div>
           </div>
@@ -70,7 +80,7 @@
           <div class="side-card">
             <p class="eyebrow">03 / EXPORT</p>
             <h2>带走你的记录</h2>
-            <p class="muted">转写完成后下载任意格式，原始音频与结果仍留在项目文件夹。</p>
+            <p class="muted">阅读版默认隐藏时间戳；需要完整时间轴或结构化结果时，可导出任意格式。</p>
             <div id="exportButtons" class="export-grid disabled">
               <button data-format="md" class="export-button" disabled><span>.md</span><small>会议纪要草稿</small></button>
               <button data-format="txt" class="export-button" disabled><span>.txt</span><small>纯文本记录</small></button>
