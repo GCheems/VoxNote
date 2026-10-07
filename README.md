@@ -28,7 +28,33 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 若 PowerShell 禁止激活脚本，可以直接使用 `.\.venv\Scripts\python.exe -m pip ...` 和 `.\.venv\Scripts\python.exe -m uvicorn ...`。
 
-### macOS / Linux
+### macOS Apple Silicon (Python 3.11, arm64)
+
+用原生 arm64 终端和 Python；不要在 Rosetta x86_64 shell/环境中安装。Homebrew 可安装 Python 与音频解码器：
+
+```bash
+brew install python@3.11 ffmpeg
+
+[ "$(uname -m)" = "arm64" ] || { echo "请打开原生 arm64 终端"; exit 1; }
+python3.11 -c "import platform; assert platform.machine() == 'arm64', platform.machine()"
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install --require-hashes -r requirements-macos-arm64-py311.lock.txt
+cp .env.example .env
+```
+
+如需使用 Apple GPU，把 `.env` 中 `FUNASR_DEVICE=cpu` 改为 `FUNASR_DEVICE=mps`。先检查 PyTorch MPS，再用完整模型链做一次短音频推理验收：
+
+```bash
+python -c "import torch; print(torch.__version__, torch.backends.mps.is_available()); assert torch.backends.mps.is_available()"
+python scripts/verify_funasr.py
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+MPS 用于 ASR 主模型；VAD、标点和说话人模型留在 CPU。模型首次运行会下载权重。若 MPS 推理报设备或算子错误，把 `FUNASR_DEVICE` 改回 `cpu` 重试。也可完全使用 CPU，不需要改配置。详见 [Apple Silicon 适配说明](docs/MACOS_APPLE_SILICON.md)。
+
+### Linux / Intel Mac
 
 ```bash
 python3 -m venv .venv

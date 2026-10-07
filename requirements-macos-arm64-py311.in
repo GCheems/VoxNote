@@ -1,0 +1,15 @@
+# Standalone runtime set for Apple Silicon MPS; keep aligned with requirements.txt.
+fastapi>=0.115,<1
+uvicorn[standard]>=0.30,<1
+python-multipart>=0.0.9,<1
+httpx>=0.27,<1
+python-dotenv>=1,<2
+imageio-ffmpeg>=0.5,<1
+funasr==1.4.16
+modelscope>=1.20,<2
+torch==2.6.0
+torchaudio==2.6.0
+soundfile>=0.12,<1
+transformers>=4.41,<5
+numba<0.68
+scikit-learn<1.8

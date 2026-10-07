@@ -43,29 +43,49 @@ class FunASRTranscriber:
                 ) from exc
 
             try:
-                if self.settings.funasr_device.startswith("cuda"):
+                device = self.settings.funasr_device
+                if device.startswith("cuda") or device == "mps":
                     try:
                         import torch
                     except ImportError as exc:
+                        backend = "Apple MPS" if device == "mps" else "CUDA"
                         raise TranscriptionError(
-                            "当前配置要求 CUDA，但当前 Python 环境没有安装 PyTorch。"
+                            f"当前配置要求 {backend}，但当前 Python 环境没有安装 PyTorch。"
                         ) from exc
-                    if not torch.cuda.is_available():
+
+                    if device.startswith("cuda") and not torch.cuda.is_available():
                         raise TranscriptionError(
-                            f"当前配置要求 {self.settings.funasr_device}，"
-                            "但当前 Python 环境检测不到可用 CUDA。"
+                            f"当前配置要求 {device}，但当前 Python 环境检测不到可用 CUDA。"
                         )
-                self._model = AutoModel(
-                    model=self.settings.funasr_model,
-                    vad_model=self.settings.funasr_vad_model,
-                    vad_kwargs={
+                    if device == "mps":
+                        mps_backend = getattr(getattr(torch, "backends", None), "mps", None)
+                        if mps_backend is None or not mps_backend.is_available():
+                            raise TranscriptionError(
+                                "Apple Silicon MPS 不可用。请使用原生 arm64 Python 和支持 MPS 的 PyTorch，"
+                                "并确认 Mac 兼容；也可将 "
+                                "FUNASR_DEVICE=cpu 后重试。"
+                            )
+
+                model_kwargs = {
+                    "model": self.settings.funasr_model,
+                    "vad_model": self.settings.funasr_vad_model,
+                    "vad_kwargs": {
                         "max_single_segment_time": self.settings.vad_max_single_segment_time_ms
                     },
-                    punc_model=self.settings.funasr_punc_model,
-                    spk_model=self.settings.funasr_spk_model,
-                    device=self.settings.funasr_device,
-                    disable_update=True,
-                )
+                    "punc_model": self.settings.funasr_punc_model,
+                    "spk_model": self.settings.funasr_spk_model,
+                    "device": device,
+                    "disable_update": True,
+                }
+                if device == "mps":
+                    # FunASR 1.4.16 supports placing each pipeline model separately.
+                    # Keep preprocessing, punctuation, and speaker embedding on CPU.
+                    model_kwargs["vad_kwargs"]["device"] = "cpu"
+                    model_kwargs["punc_kwargs"] = {"device": "cpu"}
+                    model_kwargs["spk_kwargs"] = {"device": "cpu"}
+                self._model = AutoModel(**model_kwargs)
+            except TranscriptionError:
+                raise
             except Exception as exc:
                 raise TranscriptionError(f"FunASR 模型初始化失败：{exc}") from exc
         return self._model
