@@ -61,11 +61,47 @@ function resetTranscript() {
   document.querySelectorAll(".export-button").forEach((button) => { button.disabled = true; });
 }
 
+function setIndeterminateProgress(valueText, hintText) {
+  const track = $("progressTrack");
+  const bar = $("progressBar");
+  $("progressValue").textContent = valueText;
+  bar.classList.add("indeterminate");
+  bar.style.width = "35%";
+  track.removeAttribute("aria-valuenow");
+  track.setAttribute("aria-valuetext", "处理中，无法准确估算完成百分比");
+  if (hintText) $("progressHint").textContent = hintText;
+}
+
 function renderProgress(job) {
   const active = ["transcribing", "summarizing"].includes(job.status);
+  const progress = job.progress;
+  const progressKnown = Number.isInteger(progress) && job.status !== "failed";
+  const track = $("progressTrack");
+  const bar = $("progressBar");
+
   $("progressPanel").classList.toggle("hidden", !active && job.status !== "failed");
-  $("progressValue").textContent = `${job.progress}%`;
-  $("progressBar").style.width = `${job.progress}%`;
+  if (active && !progressKnown) {
+    setIndeterminateProgress(
+      "处理中",
+      job.status === "summarizing"
+        ? "纪要服务正在处理；当前无法准确估算完成百分比。"
+        : "本机模型正在处理音频；当前无法准确估算完成百分比。",
+    );
+  } else {
+    $("progressValue").textContent = job.status === "failed"
+      ? "失败"
+      : progressKnown ? `${progress}%` : "处理中";
+    bar.classList.remove("indeterminate");
+    bar.style.width = progressKnown ? `${progress}%` : "0%";
+    if (progressKnown) {
+      track.setAttribute("aria-valuenow", String(progress));
+      track.removeAttribute("aria-valuetext");
+    } else {
+      track.removeAttribute("aria-valuenow");
+      track.setAttribute("aria-valuetext", "处理中，无法准确估算完成百分比");
+    }
+  }
+
   $("progressLabel").textContent = job.status === "summarizing" ? "正在生成纪要" : "正在本地转写";
   if (job.status === "failed") {
     $("progressPanel").classList.remove("hidden");
@@ -73,7 +109,6 @@ function renderProgress(job) {
     $("progressHint").textContent = job.error || "请检查配置后重试。";
   }
 }
-
 function renderTranscript(transcript) {
   const list = $("transcriptList");
   list.innerHTML = transcript.segments.map((segment, index) => `
@@ -121,7 +156,7 @@ async function uploadAndStart() {
   $("startButton").disabled = true;
   $("progressPanel").classList.remove("hidden");
   $("progressLabel").textContent = "正在上传";
-  $("progressHint").textContent = "文件会写入当前项目的数据目录。";
+  setIndeterminateProgress("上传中", "文件会写入当前项目的数据目录。此阶段无法准确估算百分比。");
   setStatus("上传中…");
   try {
     const form = new FormData();

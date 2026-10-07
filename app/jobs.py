@@ -114,7 +114,7 @@ class JobService:
             if record.status == "completed":
                 return record
             record.status = "transcribing"
-            record.progress = 5
+            record.progress = None
             record.error = None
             self._save_record(record)
             self._executor.submit(self._run_transcription, job_id)
@@ -126,7 +126,7 @@ class JobService:
             job_dir = self._job_dir(job_id)
             original = next(job_dir.glob("original.*"))
             wav_path = job_dir / "normalized.wav"
-            record.progress = 15
+            record.progress = None
             self._save_record(record)
             if isinstance(self._transcriber, MockTranscriber):
                 audio_path = original
@@ -155,7 +155,7 @@ class JobService:
         try:
             record = self._read_record(job_id)
             record.status = "failed"
-            record.progress = 0
+            record.progress = None
             record.error = error
             self._save_record(record)
         except JobNotFoundError:
@@ -176,7 +176,7 @@ class JobService:
             if record.status == "summarizing":
                 return record
             record.status = "summarizing"
-            record.progress = 10
+            record.progress = None
             record.error = None
             self._save_record(record)
             self._executor.submit(self._run_summary, job_id, request)

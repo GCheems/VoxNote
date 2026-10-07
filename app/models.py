@@ -44,7 +44,8 @@ class JobRecord(BaseModel):
     job_id: str
     filename: str
     status: JobStatus
-    progress: int = Field(default=0, ge=0, le=100)
+    # None means the task is active but has no reliable progress estimate.
+    progress: int | None = Field(default=0, ge=0, le=100)
     error: str | None = None
     created_at: str
     updated_at: str

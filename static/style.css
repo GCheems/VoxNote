@@ -55,6 +55,9 @@ h3 { margin-bottom: 8px; font-size: 20px; }
 .progress-head { margin-bottom: 10px; font-size: 13px; }
 .progress-track { height: 7px; overflow: hidden; background: #e7e7df; border-radius: 99px; }
 .progress-bar { width: 0; height: 100%; border-radius: inherit; background: var(--accent); transition: width .4s ease; }
+.progress-bar.indeterminate { animation: progress-indeterminate 1.8s ease-in-out infinite; }
+@keyframes progress-indeterminate { 0% { transform: translateX(-120%); } 100% { transform: translateX(390%); } }
+@media (prefers-reduced-motion: reduce) { .progress-bar.indeterminate { animation: none; width: 100% !important; opacity: .55; } }
 .progress-panel .muted { margin: 10px 0 0; font-size: 12px; }
 .transcript-card { padding: 26px; }
 .section-heading { align-items: flex-start; margin-bottom: 19px; }
